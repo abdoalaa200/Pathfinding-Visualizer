@@ -5,9 +5,6 @@
 #include <queue>
 using namespace sf;
 using namespace std;
-//constants
-#define scr_width 1920
-#define scr_height 1080
 bool start;
 bool draw;
 bool dfs;
@@ -17,13 +14,14 @@ bool start_node;
 bool target_node;
 bool erase;
 RectangleShape r[50][96];
-RectangleShape menu[6];
+RectangleShape menu[8];
+priority_queue<pair<int, pair<int, int>>,vector<pair<int,pair<int,int>>>,greater<pair<int,pair<int,int>>>>pq;
 queue<pair<int, int>>q;
 stack<pair<int, int>>s;
 map<pair<int,int>, pair<int, int>>path;
-Texture t[6];
-string buttons[5] = { "start","target","dfs","bfs","exit" };
-int i, j,a,b;
+Texture t[8];
+string buttons[8] = {"start","end","dfs","bfs","astar","s","reset","exit"};
+int i, j;
 int it, jt;
 Clock c;
 void init()
@@ -42,9 +40,13 @@ void init()
 		s.pop();
 	while (q.empty() == 0)
 		q.pop();
+	while (pq.empty() == 0)
+		pq.pop();
 	path.clear();
 	path[{0, 0}] = { -1,-1 };
 	s.push({ i, j });
+	q.push({ i,j });
+	pq.push({ 0,{i,j} });
 	for (int i = 0; i < 50; i++)
 	{
 		for (int j = 0; j < 96; j++)
@@ -56,22 +58,21 @@ void init()
 	}
 	r[i][j].setFillColor(Color::Black);
 	r[it][jt].setFillColor(Color::Black);
-	for (int i = 0; i < 6; i++)
+	for (int i = 0; i < 8; i++)
 	{
-		menu[i].setSize(Vector2f(300.f,80.f));
-		menu[i].setPosition(10+i * 320,0);
+		menu[i].setSize(Vector2f(220.f,80.f));
+		menu[i].setPosition(10+i * 240,0);
 	}
-	for (int i = 0; i < 5; i++)
+	for (int i = 0; i < 8; i++)
 	{
 		t[i].loadFromFile(buttons[i] + ".png");
-		menu[i].setFillColor(Color::White);
 		menu[i].setTexture(&t[i]);
 	}
-	menu[2].setFillColor(Color::Black);
+	t[2].loadFromFile("dfst.png");
 }
 int main()
 {
-	RenderWindow w(VideoMode(scr_width, scr_height), "path visualizer", Style::Fullscreen);
+	RenderWindow w(VideoMode(1920,1080), "path visualizer", Style::Fullscreen);
 	Event e;
 	init();
 	while (w.isOpen())
@@ -174,6 +175,55 @@ int main()
 				}
 			}
 		}
+		if (start == 1 && astar == 1)
+		{
+			if (pq.empty() == 0 && !(i == it && j == jt - 1) && !(i == it && j == jt + 1) && !(i == it + 1 && j == jt) && !(i == it - 1 && j == jt))
+			{
+				i = pq.top().second.first;
+				j = pq.top().second.second;
+				pq.pop();
+				if (r[i][j].getFillColor() == Color::Blue || r[i][j].getFillColor() == Color::Black)
+				{
+					if (r[i][j].getFillColor() == Color::Blue)
+						r[i][j].setFillColor(Color::Magenta);
+					if (j > 0 && r[i][j - 1].getFillColor() == Color::Blue)
+					{
+						pq.push({(abs(i-it)+abs(j-1-jt)),{ i, j - 1 } });
+						path[{i, j - 1}] = { i, j };
+					}
+					if (i > 0 && r[i - 1][j].getFillColor() == Color::Blue)
+					{
+						pq.push({ (abs(i-1 - it) + abs(j - jt)),{ i - 1, j } });
+						path[{i - 1, j}] = { i, j };
+					}
+					if (j < 95 && r[i][j + 1].getFillColor() == Color::Blue)
+					{
+						pq.push({ (abs(i - it) + abs(j + 1 - jt)),{ i , j + 1 } });
+						path[{i, j + 1}] = { i, j };
+					}
+					if (i < 49 && r[i + 1][j].getFillColor() == Color::Blue)
+					{
+						pq.push({ (abs(i+1 - it) + abs(j - jt)),{ i + 1, j } });
+						path[{i + 1, j}] = { i, j };
+					}
+				}
+			}
+			else
+			{
+				if (pq.empty() == 0)
+				{
+					int a = i, b = j;
+					while (a != -1 && b != -1)
+					{
+						int a1 = a, b1 = b;
+						a = path[{a1, b1}].first;
+						b = path[{a1, b1}].second;
+						if (a != -1 && b != -1)
+							r[a1][b1].setFillColor(Color::Yellow);
+					}
+				}
+			}
+		}
 		while (w.pollEvent(e))
 		{
 			if (e.type == Event::Closed)
@@ -206,18 +256,15 @@ int main()
 						i = (e.mouseButton.y / 20) - 4;
 						j = e.mouseButton.x / 20;
 						r[i][j].setFillColor(Color::Black);
-						if (dfs == 1)
-						{
-							while (s.empty() == 0)
-								s.pop();
-							s.push({ i,j });
-						}
-						if (bfs == 1)
-						{
-							while (q.empty() == 0)
-								q.pop();
-							q.push({ i,j });
-						}
+						while (s.empty() == 0)
+							s.pop();
+						s.push({ i,j });
+						while (q.empty() == 0)
+							q.pop();
+						q.push({ i,j });
+						while (pq.empty() == 0)
+							pq.pop();
+						pq.push({0,{i,j}});
 						path.clear();
 						path[{i, j}] = { -1,-1 };
 					}
@@ -231,54 +278,78 @@ int main()
 				}
 				else
 				{
-					if (e.mouseButton.x >= 10 && e.mouseButton.x <= 310 && start==0)
+					if (e.mouseButton.x >= 10 && e.mouseButton.x <= 230 && start==0)
 					{
 						if (start == 0)
 						{
 							if (start_node == 0)
-								menu[0].setFillColor(Color::Black);
+								t[0].loadFromFile("startt.png");
 							else
-								menu[0].setFillColor(Color::White);
+								t[0].loadFromFile("start.png");
 							start_node = !start_node;
 							target_node = 0;
-							menu[1].setFillColor(Color::White);
+							t[1].loadFromFile("end.png");
 						}
 					}
-					if (e.mouseButton.x >= 330 && e.mouseButton.x <= 620 && start==0)
+					if (e.mouseButton.x >= 250 && e.mouseButton.x <= 470 && start==0)
 					{
 						if (start == 0)
 						{
 							if (target_node == 0)
-								menu[1].setFillColor(Color::Black);
+								t[1].loadFromFile("endt.png");
 							else
-								menu[1].setFillColor(Color::White);
+								t[1].loadFromFile("end.png");
 							target_node = !target_node;
 							start_node = 0;
-							menu[0].setFillColor(Color::White);
+							t[0].loadFromFile("start.png");
 						}
 					}
-					if (e.mouseButton.x >= 650 && e.mouseButton.x <= 950 && start==0)
+					if (e.mouseButton.x >= 490 && e.mouseButton.x <= 710 && start==0)
 					{
 						if (start == 0)
 						{
-							menu[2].setFillColor(Color::Black);
-							menu[3].setFillColor(Color::White);
+							t[2].loadFromFile("dfst.png");
+							t[3].loadFromFile("bfs.png");
+							t[4].loadFromFile("astar.png");
 							dfs = 1;
 							bfs = 0;
+							astar = 0;
 						}
 					}
-					if (e.mouseButton.x >= 970 && e.mouseButton.x <= 1270 && start==0)
+					if (e.mouseButton.x >= 730 && e.mouseButton.x <= 950 && start==0)
 					{
 						if (start == 0)
 						{
-							menu[3].setFillColor(Color::Black);
-							menu[2].setFillColor(Color::White);
+							t[2].loadFromFile("dfs.png");
+							t[3].loadFromFile("bfst.png");
+							t[4].loadFromFile("astar.png");
 							bfs = 1;
 							dfs = 0;
-							q.push({i,j});
+							astar = 0;
 						}
 					}
-					if (e.mouseButton.x >= 1290 && e.mouseButton.x <= 1590)
+					if (e.mouseButton.x >= 970 && e.mouseButton.x <= 1190)
+					{
+						if (start == 0)
+						{
+							t[2].loadFromFile("dfs.png");
+							t[3].loadFromFile("bfs.png");
+							t[4].loadFromFile("astart.png");
+							bfs = 0;
+							dfs = 0;
+							astar = 1;
+						}
+					}
+					if (e.mouseButton.x >= 1210 && e.mouseButton.x <= 1430)
+					{
+						t[5].loadFromFile("st.png");
+						start = 1;
+					}
+					if (e.mouseButton.x >= 1450 && e.mouseButton.x <= 1670)
+					{
+						init();
+					}
+					if (e.mouseButton.x >= 1690 && e.mouseButton.x <= 1910)
 					{
 						w.close();
 					}
@@ -303,18 +374,6 @@ int main()
 
 				}
 			}
-			if (e.type == Event::KeyPressed)
-			{
-				if (e.key.code == Keyboard::R)
-				{
-					init();
-				}
-				if (e.key.code == Keyboard::Enter)
-				{
-					if(bfs==1 || dfs==1)
-						start = 1;
-				}
-			}
 		}
 		w.clear(Color::White);
 		for (int i = 0; i < 50; i++)
@@ -324,7 +383,7 @@ int main()
 				w.draw(r[i][j]);
 			}
 		}
-		for (int i = 0; i < 6; i++)
+		for (int i = 0; i < 8; i++)
 		{
 			w.draw(menu[i]);
 		}
