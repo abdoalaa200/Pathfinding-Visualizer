@@ -85,27 +85,31 @@ int main()
 				i = q.front().first;
 				j = q.front().second;
 				q.pop();
-				if (r[i][j].getFillColor() == Color::Blue || r[i][j].getFillColor() == Color::Black)
+				if (r[i][j].getFillColor() != Color::Red)
 				{
-					if (r[i][j].getFillColor() == Color::Blue)
+					if (r[i][j].getFillColor() == Color::Green)
 						r[i][j].setFillColor(Color::Magenta);
 					if (j > 0 && r[i][j - 1].getFillColor() == Color::Blue)
 					{
+						r[i ][j-1].setFillColor(Color::Green);
 						q.push({ i, j - 1 });
 						path[{i, j - 1}] = {i, j};
 					}
 					if (i > 0 && r[i - 1][j].getFillColor() == Color::Blue)
 					{
+						r[i - 1][j].setFillColor(Color::Green);
 						q.push({ i - 1, j });
 						path[{i-1, j}] = {i, j};
 					}
 					if (j < 95 && r[i][j + 1].getFillColor() == Color::Blue)
 					{
+						r[i ][j+1].setFillColor(Color::Green);
 						q.push({ i , j + 1 });
 						path[{i, j + 1}] = {i, j};
 					}
 					if (i < 49 && r[i + 1][j].getFillColor() == Color::Blue)
 					{
+						r[i + 1][j].setFillColor(Color::Green);
 						q.push({ i + 1, j });
 						path[{i+1, j}] = {i, j};
 					}
@@ -134,29 +138,29 @@ int main()
 				i = s.top().first;
 				j = s.top().second;
 				s.pop();
-				if (r[i][j].getFillColor() == Color::Blue || r[i][j].getFillColor() == Color::Black)
+				if (r[i][j].getFillColor() != Color::Red)
 				{
 					if(r[i][j].getFillColor() == Color::Blue)
 						r[i][j].setFillColor(Color::Magenta);
 					if (j > 0 && r[i][j - 1].getFillColor() == Color::Blue)
 					{
 						s.push({ i, j - 1 });
-						path[{i, j - 1}] = { i,j };
+						path[{i, j - 1}] = { i, j };
 					}
 					if (i > 0 && r[i - 1][j].getFillColor() == Color::Blue)
 					{
 						s.push({ i - 1, j });
-						path[{i-1, j}] = { i,j };
+						path[{i - 1, j}] = { i, j };
 					}
 					if (j < 95 && r[i][j + 1].getFillColor() == Color::Blue)
 					{
 						s.push({ i , j + 1 });
-						path[{i, j + 1}] = { i,j };
+						path[{i, j + 1}] = { i, j };
 					}
 					if (i < 49 && r[i + 1][j].getFillColor() == Color::Blue)
 					{
 						s.push({ i + 1, j });
-						path[{i+1, j}] = { i,j };
+						path[{i + 1, j}] = { i, j };
 					}
 				}
 			}
