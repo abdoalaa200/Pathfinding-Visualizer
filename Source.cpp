@@ -3,6 +3,7 @@
 #include <iostream>
 #include <stack>
 #include <queue>
+#include <math.h>
 using namespace sf;
 using namespace std;
 bool start;
@@ -15,13 +16,13 @@ bool target_node;
 bool erase;
 RectangleShape r[50][96];
 RectangleShape menu[8];
-priority_queue<pair<int, pair<int, int>>,vector<pair<int,pair<int,int>>>,greater<pair<int,pair<int,int>>>>pq;
+priority_queue<pair<double, pair<int, int>>,vector<pair<double,pair<int,int>>>,greater<pair<double,pair<int,int>>>>pq;
 queue<pair<int, int>>q;
 stack<pair<int, int>>s;
 map<pair<int,int>, pair<int, int>>path;
 Texture t[8];
 string buttons[8] = {"start","end","dfs","bfs","astar","s","reset","exit"};
-int i, j;
+int i, j,x,y;
 int it, jt;
 Clock c;
 void init()
@@ -34,7 +35,7 @@ void init()
 	bfs = 0;
 	astar = 0;
 	erase = 0;
-	i = 0, j = 0;
+	i = 0, j = 0; x = 0; y = 0;
 	it = 49, jt = 95;
 	while (s.empty() == 0)
 		s.pop();
@@ -182,29 +183,33 @@ int main()
 				i = pq.top().second.first;
 				j = pq.top().second.second;
 				pq.pop();
-				if (r[i][j].getFillColor() == Color::Blue || r[i][j].getFillColor() == Color::Black)
+				if (r[i][j].getFillColor() != Color::Red)
 				{
-					if (r[i][j].getFillColor() == Color::Blue)
+					if (r[i][j].getFillColor() == Color::Green)
 						r[i][j].setFillColor(Color::Magenta);
-					if (j > 0 && r[i][j - 1].getFillColor() == Color::Blue)
+					if (i < 49 && r[i + 1][j].getFillColor() == Color::Blue)
 					{
-						pq.push({(abs(i-it)+abs(j-1-jt)),{ i, j - 1 } });
-						path[{i, j - 1}] = { i, j };
-					}
-					if (i > 0 && r[i - 1][j].getFillColor() == Color::Blue)
-					{
-						pq.push({ (abs(i-1 - it) + abs(j - jt)),{ i - 1, j } });
-						path[{i - 1, j}] = { i, j };
+						r[i + 1][j].setFillColor(Color::Green);
+						path[{i + 1, j}] = { i, j };
+						pq.push({1.1*(abs(i + 1 - it) + abs(j - jt)) + abs(i + 1 - x) + abs(j - y),{ i + 1, j } });
 					}
 					if (j < 95 && r[i][j + 1].getFillColor() == Color::Blue)
 					{
-						pq.push({ (abs(i - it) + abs(j + 1 - jt)),{ i , j + 1 } });
+						r[i][j+1].setFillColor(Color::Green);
 						path[{i, j + 1}] = { i, j };
+						pq.push({1.1*(abs(i - it) +abs(j+1 - jt)) + abs(i  - x) + abs(j+1 - y),{ i , j + 1 } });
 					}
-					if (i < 49 && r[i + 1][j].getFillColor() == Color::Blue)
+					if (i > 0 && r[i - 1][j].getFillColor() == Color::Blue)
 					{
-						pq.push({ (abs(i+1 - it) + abs(j - jt)),{ i + 1, j } });
-						path[{i + 1, j}] = { i, j };
+						r[i - 1][j].setFillColor(Color::Green);
+						path[{i - 1, j}] = { i, j };
+						pq.push({1.1*(abs(i - 1 - it) +abs(j - jt))+abs(i-1-x)+abs(j-y),{ i - 1, j } });
+					}
+					if (j > 0 && r[i][j - 1].getFillColor() == Color::Blue)
+					{
+						r[i ][j-1].setFillColor(Color::Green);
+						path[{i, j - 1}] = { i, j };
+						pq.push({1.1*(abs(i  - it) + abs(j -1- jt)) + abs(i  - x) + abs(j-1 - y),{ i, j - 1 } });
 					}
 				}
 			}
@@ -238,7 +243,6 @@ int main()
 					{
 						if (e.mouseButton.button == Mouse::Left)
 						{
-
 							draw = 1; 
 							if(r[(e.mouseButton.y / 20) - 4][e.mouseButton.x / 20].getFillColor()!=Color::Black)
 							r[(e.mouseButton.y / 20) - 4][e.mouseButton.x / 20].setFillColor(Color::Red);
@@ -267,6 +271,8 @@ int main()
 						pq.push({0,{i,j}});
 						path.clear();
 						path[{i, j}] = { -1,-1 };
+						x = i;
+						y = j;
 					}
 					else if (target_node == 1)
 					{
@@ -365,8 +371,7 @@ int main()
 			if (e.type == Event::MouseMoved && start == 0)
 			{
 				if (e.mouseMove.y >= 80)
-				{
-					
+				{	
 					if (draw == 1 && r[(e.mouseMove.y / 20) - 4][e.mouseMove.x / 20].getFillColor()!=Color::Black)
 						r[(e.mouseMove.y / 20) - 4][e.mouseMove.x / 20].setFillColor(Color::Red);
 					if (erase == 1 && r[(e.mouseMove.y / 20) - 4][e.mouseMove.x / 20].getFillColor() != Color::Black)
