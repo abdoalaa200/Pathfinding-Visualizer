@@ -258,7 +258,7 @@ int main()
 							r[(e.mouseButton.y / 20) - 4][e.mouseButton.x / 20].setFillColor(Color::Blue);
 						}
 					}
-					else if(start_node==1)
+					else if(start_node==1 && r[(e.mouseButton.y / 20) - 4][e.mouseButton.x / 20].getFillColor()!=Color::Black)
 					{
 						r[i][j].setFillColor(Color::Blue);
 						i = (e.mouseButton.y / 20) - 4;
@@ -278,7 +278,7 @@ int main()
 						x = i;
 						y = j;
 					}
-					else if (target_node == 1)
+					else if (target_node == 1 && r[(e.mouseButton.y / 20) - 4][e.mouseButton.x / 20].getFillColor() != Color::Black)
 					{
 						r[it][jt].setFillColor(Color::Blue);
 						it = (e.mouseButton.y / 20) - 4;
